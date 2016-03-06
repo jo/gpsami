@@ -1,14 +1,27 @@
-use gtk::widgets;
 use gtk;
 use gtk::traits::*;
 use gtk::signal::Inhibit;
+use glib::types::Type as GType;
+use std::rc::Rc;
+use std::cell::RefCell;
+
+use devices;
+use utils;
 
 pub struct MgApplication {
-    win: widgets::Window,
+    win: gtk::Window,
+    download_btn: gtk::Button,
+    erase_checkbtn: gtk::CheckButton,
+    model_combo: gtk::ComboBox,
+    port_combo: gtk::ComboBox,
+    port_combo_store: gtk::ListStore,
+
+    device_manager: devices::Manager,
 }
 
 impl MgApplication {
 
+    /// Init Gtk and stuff. Called by the contructor.
     fn init() {
         use std::sync::{Once, ONCE_INIT};
 
@@ -22,23 +35,56 @@ impl MgApplication {
         });
     }
 
-    pub fn new() -> MgApplication {
+    pub fn new() -> Rc<RefCell<MgApplication>> {
         Self::init();
 
-        let window: widgets::Window;
-        if let Some(b) = widgets::Builder::new_from_string(
-            include_str!("mgwindow.ui")) {
-            window =
-                unsafe { b.get_object("main_window") }.unwrap();
-            window.show_all();
-        }
-        else {
-            window = widgets::Window::new(gtk::WindowType::Toplevel).unwrap();
-        }
+        let builder: gtk::widgets::Builder =
+            gtk::widgets::Builder::new_from_string(include_str!("mgwindow.ui")).
+            unwrap();
+        let window: gtk::Window =
+            unsafe { builder.get_object("main_window") }.unwrap();
+        let download_btn: gtk::Button =
+            unsafe { builder.get_object("download_btn") }.unwrap();
+        download_btn.set_sensitive(false);
+        let erase_checkbtn: gtk::CheckButton =
+            unsafe { builder.get_object("erase_checkbtn") }.unwrap();
+        let model_combo: gtk::ComboBox =
+            unsafe { builder.get_object("model_combo") }.unwrap();
+        let port_combo: gtk::ComboBox =
+            unsafe { builder.get_object("port_combo") }.unwrap();
 
-        MgApplication {
-            win: window
-        }
+        let store = gtk::ListStore::new(&[
+            GType::String, GType::String
+                ]).unwrap();
+
+        let me = Rc::new(RefCell::new(MgApplication {
+            win: window,
+            download_btn: download_btn,
+            erase_checkbtn: erase_checkbtn,
+            model_combo: model_combo,
+            port_combo: port_combo,
+            port_combo_store: store,
+            device_manager: devices::Manager::new(),
+        }));
+
+        me.borrow_mut().win.connect_delete_event(|_, _| {
+            Self::terminate()
+        });
+        me.borrow_mut().download_btn.connect_clicked(|_| {
+            //
+        });
+
+        let me2 = me.clone();
+        me.borrow_mut().model_combo.connect_changed(move |combo| {
+            if let Some(id) = combo.get_active_id() {
+
+                // post event "model changed id"
+                // XXX fixme, we have lifetime issues here
+                me2.borrow_mut().model_changed(&id);
+            }
+        });
+
+        me
     }
 
     fn terminate() -> Inhibit {
@@ -46,11 +92,58 @@ impl MgApplication {
         Inhibit(false)
     }
 
-    pub fn start(&self) {
-        self.win.connect_delete_event(|_, _| {
-            Self::terminate()
-        });
+    /// Start the app.
+    pub fn start(&mut self) {
+        self.populate_model_combo();
+        self.win.show_all();
 
-        gtk::main();
+        self.model_changed(&"".to_string());
+    }
+
+    fn setup_port_combo(&mut self)
+    {
+        let model = self.port_combo_store.get_model().unwrap();
+
+        utils::setup_text_combo(&self.port_combo, model);
+    }
+
+    fn populate_port_combo(&mut self, ports: &Vec<devices::Port>)
+    {
+        self.port_combo_store.clear();
+        for port in ports {
+            println!("adding port {:?}", port);
+            utils::add_text_row(&self.port_combo_store,
+                                port.id.as_str(),
+                                port.label.as_str());
+        }
+    }
+
+    fn populate_model_combo(&mut self)
+    {
+        let store = gtk::ListStore::new(&[
+            GType::String, GType::String
+                ]).unwrap();
+
+        let model = store.get_model().unwrap();
+
+        utils::setup_text_combo(&self.model_combo, model);
+
+        let devices = self.device_manager.devices_desc();
+        for dev in devices {
+            println!("adding dev {:?}", dev);
+            utils::add_text_row(&store, dev.id, dev.label);
+        }
+    }
+
+    fn model_changed(&mut self, id: &String)
+    {
+        let cap = self.device_manager.device_capability(id);
+        self.update_device_capability(&cap);
+        self.device_manager.set_model(id.clone());
+    }
+
+    fn update_device_capability(&self, capability: &devices::Capability)
+    {
+        self.erase_checkbtn.set_sensitive(capability.can_erase);
     }
 }
