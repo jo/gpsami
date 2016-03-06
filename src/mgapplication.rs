@@ -77,10 +77,14 @@ impl MgApplication {
         let me2 = me.clone();
         me.borrow_mut().model_combo.connect_changed(move |combo| {
             if let Some(id) = combo.get_active_id() {
-
-                // post event "model changed id"
-                // XXX fixme, we have lifetime issues here
                 me2.borrow_mut().model_changed(&id);
+            }
+        });
+
+        let me3 = me.clone();
+        me.borrow_mut().port_combo.connect_changed(move |combo| {
+            if let Some(id) = combo.get_active_id() {
+                me3.borrow_mut().port_changed(&id);
             }
         });
 
@@ -95,20 +99,20 @@ impl MgApplication {
     /// Start the app.
     pub fn start(&mut self) {
         self.populate_model_combo();
+        self.setup_port_combo();
         self.win.show_all();
 
+        // XXX used the stored value here.
         self.model_changed(&"".to_string());
     }
 
-    fn setup_port_combo(&mut self)
-    {
+    fn setup_port_combo(&mut self) {
         let model = self.port_combo_store.get_model().unwrap();
 
         utils::setup_text_combo(&self.port_combo, model);
     }
 
-    fn populate_port_combo(&mut self, ports: &Vec<devices::Port>)
-    {
+    fn populate_port_combo(&mut self, ports: &Vec<devices::Port>) {
         self.port_combo_store.clear();
         for port in ports {
             println!("adding port {:?}", port);
@@ -118,8 +122,7 @@ impl MgApplication {
         }
     }
 
-    fn populate_model_combo(&mut self)
-    {
+    fn populate_model_combo(&mut self) {
         let store = gtk::ListStore::new(&[
             GType::String, GType::String
                 ]).unwrap();
@@ -135,15 +138,19 @@ impl MgApplication {
         }
     }
 
-    fn model_changed(&mut self, id: &String)
-    {
+    fn model_changed(&mut self, id: &String) {
         let cap = self.device_manager.device_capability(id);
         self.update_device_capability(&cap);
         self.device_manager.set_model(id.clone());
+        let ports = self.device_manager.get_ports_for_model(id);
+        self.populate_port_combo(&ports);
     }
 
-    fn update_device_capability(&self, capability: &devices::Capability)
-    {
+    fn update_device_capability(&self, capability: &devices::Capability) {
         self.erase_checkbtn.set_sensitive(capability.can_erase);
+    }
+
+    fn port_changed(&mut self, id: &String) {
+        self.device_manager.set_port(id.clone());
     }
 }

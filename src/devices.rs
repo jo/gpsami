@@ -66,6 +66,10 @@ impl Manager {
         }
         Capability::new()
     }
+
+    pub fn get_ports_for_model(&self, _ /*model*/: &String) -> Vec<Port> {
+        return vec![ Port { id: "foo".to_string(), label: "bar".to_string() } ];
+    }
 }
 
 impl Capability {
