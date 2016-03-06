@@ -6,6 +6,7 @@ authors = ["Hubert Figuière <hub@figuiere.net>"]
 [dependencies]
 gtk = "0.0.6"
 glib = "^0"
+rustc-serialize = "0.3"
 
 [[bin]]
 name = "magellan"

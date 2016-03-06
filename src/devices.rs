@@ -1,4 +1,4 @@
-
+use rustc_serialize::json;
 
 
 #[derive(Clone, Debug)]
@@ -8,7 +8,7 @@ pub struct Port {
 }
 
 /// Device static capability
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, RustcDecodable)]
 pub struct Capability {
     pub can_erase: bool,
     can_erase_only: bool,
@@ -16,25 +16,18 @@ pub struct Capability {
     can_shutoff: bool,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, RustcDecodable)]
 pub struct Desc {
-    pub id: &'static str,
-    pub label: &'static str,
+    pub id: String,
+    pub label: String,
     cap: Capability,
+    driver: String,
 }
 
-static DEVICES : [Desc; 1] = [
-    Desc {
-        id: "holux",
-        label: "Holux",
-        cap: Capability {
-            can_erase: true,
-            can_erase_only: true,
-            can_log_enable: false,
-            can_shutoff: false
-        }
-    }
-    ];
+#[derive(Clone, Debug, RustcDecodable)]
+struct DeviceDb {
+    devices: Vec<Desc>,
+}
 
 pub struct Manager {
     model: Option<String>,
@@ -45,7 +38,10 @@ pub struct Manager {
 impl Manager {
 
     pub fn new() -> Self {
-        Manager { model: None, port: None, devices: DEVICES.to_vec() }
+        let devices_db: DeviceDb = json::decode(
+            include_str!("devices.json")
+            ).unwrap();
+        Manager { model: None, port: None, devices: devices_db.devices }
     }
 
     pub fn set_model(&mut self, model: String) {
@@ -66,7 +62,7 @@ impl Manager {
         }
         // XXX this is suboptimal.
         for device in &self.devices {
-            if device.id == model {
+            if device.id == *model {
                 return device.cap.clone();
             }
         }
@@ -88,4 +84,15 @@ impl Capability {
             can_shutoff: false,
         }
     }
+}
+
+
+#[cfg(test)]
+#[test]
+fn test_database() {
+    // This test that the database has a valid syntax....
+    let devices_db: DeviceDb = json::decode(
+        include_str!("devices.json")
+            ).unwrap();
+    assert!(!devices_db.devices.is_empty());
 }

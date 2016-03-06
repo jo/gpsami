@@ -134,7 +134,7 @@ impl MgApplication {
         let devices = self.device_manager.devices_desc();
         for dev in devices {
             println!("adding dev {:?}", dev);
-            utils::add_text_row(&store, dev.id, dev.label);
+            utils::add_text_row(&store, dev.id.as_str(), dev.label.as_str());
         }
     }
 

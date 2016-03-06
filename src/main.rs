@@ -1,5 +1,6 @@
 extern crate gtk;
 extern crate glib;
+extern crate rustc_serialize;
 
 use mgapplication::MgApplication;
 

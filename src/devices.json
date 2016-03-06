@@ -1,0 +1,59 @@
+{
+  "devices": [
+    {
+      "id": "m241",
+      "label": "Holux M-241",
+      "cap": {
+        "can_erase": true,
+        "can_erase_only": true,
+        "can_log_enable": true,
+        "can_shutoff": false
+      },
+      "driver": "m241"
+    },
+    {
+      "id": "mtk",
+      "label": "MTK Devices",
+      "cap": {
+        "can_erase": true,
+        "can_erase_only": true,
+        "can_log_enable": true,
+        "can_shutoff": false
+      },
+      "driver": "mtk"
+    },
+    {
+      "id": "navilink",
+      "label": "NaviGPS GT-11/BGT-11",
+      "cap": {
+        "can_erase": true,
+        "can_erase_only": true,
+        "can_log_enable": false,
+        "can_shutoff": true
+      },
+      "driver": "navilink"
+    },
+    {
+      "id": "itracku",
+      "label": "XAiOX iTrackU",
+      "cap": {
+        "can_erase": false,
+        "can_erase_only": false,
+        "can_log_enable": false,
+        "can_shutoff": false
+      },
+      "driver": "itracku"
+    },
+    {
+      "id": "wbt",
+      "label": "Wintec WBT-100/200",
+      "cap": {
+        "can_erase": true,
+        "can_erase_only": false,
+        "can_log_enable": false,
+        "can_shutoff": false
+      },
+      "driver": "wbt"
+    }
+  ]
+}
