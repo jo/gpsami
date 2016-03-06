@@ -9,4 +9,13 @@ logger and save it as GPX.
 TDB.
 
 
+
+Applications to configure GPS:
+
+Wintec WBT 201 GPS and Free Operating Systems
+http://www.daria.co.uk/gps
+
+BT747
+http://bt747.wiki.sourceforge.net/
+
 Hubert Figuiere <hub@figuiere.net>

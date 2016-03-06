@@ -1,6 +1,50 @@
 {
   "devices": [
     {
+      "id": "baroiq",
+      "label": "Brauniger IQ Series Barograph",
+      "cap": {
+        "can_erase": false,
+        "can_erase_only": false,
+        "can_log_enable": false,
+        "can_shutoff": false
+      },
+      "driver": "baroiq"
+    },
+    {
+      "id": "dg-100",
+      "label": "GlobalSat DG-100/BT-335",
+      "cap": {
+        "can_erase": true,
+        "can_erase_only": true,
+        "can_log_enable": false,
+        "can_shutoff": false
+      },
+      "driver": "dg-100"
+    },
+    {
+      "id": "dg-200",
+      "label": "GlobalSat DG-200",
+      "cap": {
+        "can_erase": true,
+        "can_erase_only": true,
+        "can_log_enable": false,
+        "can_shutoff": false
+      },
+      "driver": "dg-200"
+    },
+    {
+      "id": "miniHomer",
+      "label": "MiniHomer",
+      "cap": {
+        "can_erase": true,
+        "can_erase_only": false,
+        "can_log_enable": false,
+        "can_shutoff": false
+      },
+      "driver": "miniHomer"
+    },
+    {
       "id": "m241",
       "label": "Holux M-241",
       "cap": {
@@ -32,6 +76,17 @@
         "can_shutoff": true
       },
       "driver": "navilink"
+    },
+    {
+      "id": "skytraq",
+      "label": "SkyTraq Venus based loggers",
+      "cap": {
+        "can_erase": true,
+        "can_erase_only": false,
+        "can_log_enable": false,
+        "can_shutoff": false
+      },
+      "driver": "skytraq"
     },
     {
       "id": "itracku",
