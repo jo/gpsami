@@ -57,7 +57,7 @@ impl MgApplication {
             GType::String, GType::String
                 ]).unwrap();
 
-        let me = Rc::new(RefCell::new(MgApplication {
+        let app = MgApplication {
             win: window,
             download_btn: download_btn,
             erase_checkbtn: erase_checkbtn,
@@ -65,15 +65,15 @@ impl MgApplication {
             port_combo: port_combo,
             port_combo_store: store,
             device_manager: devices::Manager::new(),
-        }));
-
-        me.borrow_mut().win.connect_delete_event(|_, _| {
+        };
+        app.win.connect_delete_event(|_, _| {
             Self::terminate()
         });
-        me.borrow_mut().download_btn.connect_clicked(|_| {
+        app.download_btn.connect_clicked(|_| {
             //
         });
 
+        let me = Rc::new(RefCell::new(app));
         let me2 = me.clone();
         me.borrow_mut().model_combo.connect_changed(move |combo| {
             if let Some(id) = combo.get_active_id() {

@@ -1,12 +1,6 @@
 
 
 
-
-pub struct Manager {
-    model: Option<String>,
-    port: Option<String>,
-}
-
 #[derive(Clone, Debug)]
 pub struct Port {
     pub id: String,
@@ -42,10 +36,16 @@ static DEVICES : [Desc; 1] = [
     }
     ];
 
+pub struct Manager {
+    model: Option<String>,
+    port: Option<String>,
+    devices: Vec<Desc>,
+}
+
 impl Manager {
 
     pub fn new() -> Self {
-        Manager { model: None, port: None }
+        Manager { model: None, port: None, devices: DEVICES.to_vec() }
     }
 
     pub fn set_model(&mut self, model: String) {
@@ -56,13 +56,19 @@ impl Manager {
         self.port = Some(port);
     }
 
-    pub fn devices_desc(&self) -> Vec<Desc> {
-        DEVICES.to_vec()
+    pub fn devices_desc(&self) -> &Vec<Desc> {
+        &self.devices
     }
 
     pub fn device_capability(&self, model: &String) -> Capability {
         if model.is_empty() {
             return Capability::new();
+        }
+        // XXX this is suboptimal.
+        for device in &self.devices {
+            if device.id == model {
+                return device.cap.clone();
+            }
         }
         Capability::new()
     }
