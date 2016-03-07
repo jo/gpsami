@@ -61,12 +61,12 @@ impl Manager {
             return Capability::new();
         }
         // XXX this is suboptimal.
-        for device in &self.devices {
-            if device.id == *model {
-                return device.cap.clone();
-            }
+        match self.devices.iter().find(|&device| device.id == *model) {
+            Some(device) =>
+                device.cap.clone(),
+            None =>
+                Capability::new(),
         }
-        Capability::new()
     }
 
     pub fn get_ports_for_model(&self, _ /*model*/: &String) -> Vec<Port> {
