@@ -1,6 +1,5 @@
 use gtk;
-use gtk::traits::*;
-use gtk::signal::Inhibit;
+use gtk::prelude::*;
 use glib::types::Type as GType;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -38,24 +37,16 @@ impl MgApplication {
     pub fn new() -> Rc<RefCell<MgApplication>> {
         Self::init();
 
-        let builder: gtk::widgets::Builder =
-            gtk::widgets::Builder::new_from_string(include_str!("mgwindow.ui")).
-            unwrap();
-        let window: gtk::Window =
-            unsafe { builder.get_object("main_window") }.unwrap();
-        let download_btn: gtk::Button =
-            unsafe { builder.get_object("download_btn") }.unwrap();
+        let builder = gtk::Builder::new_from_string(include_str!("mgwindow.ui"));
+        let window: gtk::Window = builder.get_object("main_window").unwrap();
+        let download_btn: gtk::Button = builder.get_object("download_btn").unwrap();
         download_btn.set_sensitive(false);
-        let erase_checkbtn: gtk::CheckButton =
-            unsafe { builder.get_object("erase_checkbtn") }.unwrap();
-        let model_combo: gtk::ComboBox =
-            unsafe { builder.get_object("model_combo") }.unwrap();
-        let port_combo: gtk::ComboBox =
-            unsafe { builder.get_object("port_combo") }.unwrap();
+        let erase_checkbtn: gtk::CheckButton = builder.get_object("erase_checkbtn").unwrap();
+        let model_combo: gtk::ComboBox = builder.get_object("model_combo").unwrap();
+        let port_combo: gtk::ComboBox = builder.get_object("port_combo").unwrap();
 
         let store = gtk::ListStore::new(&[
-            GType::String, GType::String
-                ]).unwrap();
+            String::static_type(), String::static_type()]);
 
         let app = MgApplication {
             win: window,
@@ -107,9 +98,7 @@ impl MgApplication {
     }
 
     fn setup_port_combo(&mut self) {
-        let model = self.port_combo_store.get_model().unwrap();
-
-        utils::setup_text_combo(&self.port_combo, model);
+        utils::setup_text_combo(&self.port_combo, &self.port_combo_store);
     }
 
     fn populate_port_combo(&mut self, ports: &Vec<devices::Port>) {
@@ -125,11 +114,9 @@ impl MgApplication {
     fn populate_model_combo(&mut self) {
         let store = gtk::ListStore::new(&[
             GType::String, GType::String
-                ]).unwrap();
+                ]);
 
-        let model = store.get_model().unwrap();
-
-        utils::setup_text_combo(&self.model_combo, model);
+        utils::setup_text_combo(&self.model_combo, &store);
 
         let devices = self.device_manager.devices_desc();
         for dev in devices {
