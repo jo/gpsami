@@ -1,11 +1,5 @@
 use rustc_serialize::json;
-
-
-#[derive(Clone, Debug)]
-pub struct Port {
-    pub id: String,
-    pub label: String,
-}
+use drivers;
 
 /// Device static capability
 #[derive(Clone, Debug, RustcDecodable)]
@@ -16,6 +10,7 @@ pub struct Capability {
     can_shutoff: bool,
 }
 
+/// Describe a device
 #[derive(Clone, Debug, RustcDecodable)]
 pub struct Desc {
     pub id: String,
@@ -24,28 +19,34 @@ pub struct Desc {
     driver: String,
 }
 
+/// The device database.
 #[derive(Clone, Debug, RustcDecodable)]
 struct DeviceDb {
     devices: Vec<Desc>,
+    drivers: Vec<drivers::Desc>,
 }
 
+/// The device manager. Where the magic happens.
 pub struct Manager {
     model: Option<String>,
     port: Option<String>,
     devices: Vec<Desc>,
+
+    driver: Option<Box<drivers::Driver>>,
 }
 
 impl Manager {
-
     pub fn new() -> Self {
         let devices_db: DeviceDb = json::decode(
             include_str!("devices.json")
             ).unwrap();
-        Manager { model: None, port: None, devices: devices_db.devices }
+        Manager { model: None, port: None,
+                  devices: devices_db.devices, driver: None }
     }
 
     pub fn set_model(&mut self, model: String) {
         self.model = Some(model);
+        self.driver = self.get_driver();
     }
 
     pub fn set_port(&mut self, port: String) {
@@ -69,8 +70,35 @@ impl Manager {
         }
     }
 
-    pub fn get_ports_for_model(&self, _ /*model*/: &String) -> Vec<Port> {
-        return vec![ Port { id: "foo".to_string(), label: "bar".to_string() } ];
+    pub fn get_ports_for_model(&self, _ /*model*/: &String)
+                               -> Vec<drivers::Port> {
+        return vec![ drivers::Port {
+            id: "foo".to_string(), label: "bar".to_string() } ];
+    }
+
+    fn get_driver(&self) -> Option<Box<drivers::Driver>> {
+        if self.model == None {
+            return None;
+        }
+        let driver_id = match self.devices.iter().find(
+            |&device| {
+                if let Some(ref model) = self.model {
+                    return &device.id == model;
+                }
+                false
+            }) {
+            Some(device) =>
+                device.driver.clone(),
+            None =>
+                return None
+        };
+        match driver_id.as_str() {
+            "m241" |
+            "mtk" =>
+                Some(Box::new(drivers::GpsBabel::new(driver_id))),
+            _ =>
+                None
+        }
     }
 }
 

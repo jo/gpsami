@@ -6,7 +6,15 @@ use mgapplication::MgApplication;
 
 mod mgapplication;
 mod devices;
+mod drivers;
 mod utils;
+
+
+pub enum Format {
+    None,
+    Gpx,
+    Kml,
+}
 
 fn main() {
 

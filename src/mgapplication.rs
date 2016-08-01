@@ -5,6 +5,7 @@ use std::rc::Rc;
 use std::cell::RefCell;
 
 use devices;
+use drivers;
 use utils;
 
 pub struct MgApplication {
@@ -101,7 +102,7 @@ impl MgApplication {
         utils::setup_text_combo(&self.port_combo, &self.port_combo_store);
     }
 
-    fn populate_port_combo(&mut self, ports: &Vec<devices::Port>) {
+    fn populate_port_combo(&mut self, ports: &Vec<drivers::Port>) {
         self.port_combo_store.clear();
         for port in ports {
             println!("adding port {:?}", port);
