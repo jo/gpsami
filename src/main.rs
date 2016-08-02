@@ -7,6 +7,7 @@ use mgapplication::MgApplication;
 mod mgapplication;
 mod devices;
 mod drivers;
+mod gpsbabel;
 mod utils;
 
 

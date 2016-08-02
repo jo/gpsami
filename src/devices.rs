@@ -1,11 +1,12 @@
 use rustc_serialize::json;
 use drivers;
+use gpsbabel;
 
 /// Device static capability
 #[derive(Clone, Debug, RustcDecodable)]
 pub struct Capability {
     pub can_erase: bool,
-    can_erase_only: bool,
+    pub can_erase_only: bool,
     can_log_enable: bool,
     can_shutoff: bool,
 }
@@ -80,6 +81,7 @@ impl Manager {
         if self.model == None {
             return None;
         }
+        let capability: Capability;
         let driver_id = match self.devices.iter().find(
             |&device| {
                 if let Some(ref model) = self.model {
@@ -87,15 +89,17 @@ impl Manager {
                 }
                 false
             }) {
-            Some(device) =>
-                device.driver.clone(),
+            Some(device) => {
+                capability = device.cap.clone();
+                device.driver.clone()
+            },
             None =>
                 return None
         };
         match driver_id.as_str() {
             "m241" |
             "mtk" =>
-                Some(Box::new(drivers::GpsBabel::new(driver_id))),
+                Some(Box::new(gpsbabel::GpsBabel::new(driver_id, capability))),
             _ =>
                 None
         }
