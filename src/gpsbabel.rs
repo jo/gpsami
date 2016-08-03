@@ -20,14 +20,28 @@ impl GpsBabel {
         GpsBabel { device_id: device, port: "".to_owned(), cap: capability }
     }
 
-    fn format_to_string(format: Format) -> Option<&'static str> {
-        match format {
+    /// Return a string associated with the format.
+    /// Or None
+    fn format_to_string(format: &Format) -> Option<&'static str> {
+        match *format {
             Format::Gpx => Some("gpx"),
             Format::Kml => Some("kml"),
             _ => None
         }
     }
 
+    /// Return an extension (with .) associated with the format.
+    /// Or None
+    fn format_to_extension(format: &Format) -> Option<&'static str> {
+        match *format {
+            Format::Gpx => Some(".gpx"),
+            Format::Kml => Some(".kml"),
+            _ => None
+        }
+    }
+
+    /// Build the basic command line for the device on port, eventually for delete
+    /// after download or erase only.
     fn build_basic_command_line(device_id: &str, port: &str,
                                 erase: bool, erase_only: bool) -> Command {
         let mut device_string = String::from(device_id);
@@ -49,6 +63,7 @@ impl GpsBabel {
 
 impl Driver for GpsBabel {
     fn list_ports(&self) -> Vec<Port> {
+        // XXX implement
         Vec::new()
     }
 
@@ -61,6 +76,8 @@ impl Driver for GpsBabel {
         true
     }
 
+    /// Download the data into a file. Return the PathBuf to said file on success.
+    /// Caller is responsible for deleting the file.
     fn download(&self, format: Format, erase: bool) -> Result<PathBuf, Error>
     {
         // we requested erase at the same time and it is not supported.
@@ -68,16 +85,23 @@ impl Driver for GpsBabel {
             return Err(Error::Unsupported)
         }
 
-        let fmt_string_opt = Self::format_to_string(format);
+        let fmt_string_opt = Self::format_to_string(&format);
         if fmt_string_opt.is_none() {
             // invalid format
             return Err(Error::WrongArg);
         }
         let fmt_string = fmt_string_opt.unwrap();
 
+        let extension_opt = Self::format_to_extension(&format);
+        if extension_opt.is_none() {
+            // invalid format
+            return Err(Error::WrongArg);
+        }
+        let extension = extension_opt.unwrap();
+
         // XXX use a better temporary name
         let mut dir = env::temp_dir();
-        dir.push(String::from("magellan.") + fmt_string);
+        dir.push(String::from("magellan.") + extension);
 
         /* gpsbabel -t -w -i m241 -f /dev/ttyACM0 -o gpx -F $1 */
         let output = GpsBabel::build_basic_command_line(&self.device_id, &self.port, erase, false)
@@ -95,6 +119,7 @@ impl Driver for GpsBabel {
         }
     }
 
+    /// Erase the logs on the device. Return an error if not capable.
     fn erase(&self) -> Error {
         // Device doesn't support "erase only"
         if !self.cap.can_erase_only {
@@ -125,10 +150,20 @@ fn test_command_builder() {
 
 #[test]
 fn test_format() {
-    let result = GpsBabel::format_to_string(Format::Gpx);
+    let result = GpsBabel::format_to_string(&Format::Gpx);
     assert!(result.is_some());
     assert_eq!(result, Some("gpx"));
 
-    let result = GpsBabel::format_to_string(Format::None);
+    let result = GpsBabel::format_to_string(&Format::None);
+    assert!(result.is_none());
+}
+
+#[test]
+fn test_extensions() {
+    let result = GpsBabel::format_to_extension(&Format::Gpx);
+    assert!(result.is_some());
+    assert_eq!(result, Some(".gpx"));
+
+    let result = GpsBabel::format_to_string(&Format::None);
     assert!(result.is_none());
 }
