@@ -58,16 +58,16 @@ impl Manager {
         &self.devices
     }
 
-    pub fn device_capability(&self, model: &String) -> Capability {
+    pub fn device_capability(&self, model: &String) -> Option<Capability> {
         if model.is_empty() {
-            return Capability::new();
+            return None;
         }
         // XXX this is suboptimal.
         match self.devices.iter().find(|&device| device.id == *model) {
             Some(device) =>
-                device.cap.clone(),
+                Some(device.cap.clone()),
             None =>
-                Capability::new(),
+                None,
         }
     }
 
@@ -108,14 +108,14 @@ impl Manager {
 
 impl Capability {
 
-    pub fn new() -> Self {
-        Capability {
-            can_erase: false,
-            can_erase_only: false,
-            can_log_enable: false,
-            can_shutoff: false,
-        }
-    }
+//    pub fn new() -> Self {
+//        Capability {
+//            can_erase: false,
+//            can_erase_only: false,
+//            can_log_enable: false,
+//            can_shutoff: false,
+//        }
+//    }
 }
 
 

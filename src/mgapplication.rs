@@ -128,10 +128,14 @@ impl MgApplication {
 
     fn model_changed(&mut self, id: &String) {
         let cap = self.device_manager.device_capability(id);
-        self.update_device_capability(&cap);
-        self.device_manager.set_model(id.clone());
-        let ports = self.device_manager.get_ports_for_model(id);
-        self.populate_port_combo(&ports);
+        if cap.is_some() {
+            self.update_device_capability(&cap.unwrap());
+            self.device_manager.set_model(id.clone());
+            let ports = self.device_manager.get_ports_for_model(id);
+            self.populate_port_combo(&ports);
+        } else {
+            // XXX clear device.
+        }
     }
 
     fn update_device_capability(&self, capability: &devices::Capability) {
