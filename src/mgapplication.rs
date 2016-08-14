@@ -11,6 +11,7 @@ use utils;
 pub struct MgApplication {
     win: gtk::Window,
     download_btn: gtk::Button,
+    erase_btn: gtk::Button,
     erase_checkbtn: gtk::CheckButton,
     model_combo: gtk::ComboBox,
     port_combo: gtk::ComboBox,
@@ -42,6 +43,7 @@ impl MgApplication {
         let window: gtk::Window = builder.get_object("main_window").unwrap();
         let download_btn: gtk::Button = builder.get_object("download_btn").unwrap();
         download_btn.set_sensitive(false);
+        let erase_btn: gtk::Button = builder.get_object("erase_btn").unwrap();
         let erase_checkbtn: gtk::CheckButton = builder.get_object("erase_checkbtn").unwrap();
         let model_combo: gtk::ComboBox = builder.get_object("model_combo").unwrap();
         let port_combo: gtk::ComboBox = builder.get_object("port_combo").unwrap();
@@ -52,6 +54,7 @@ impl MgApplication {
         let app = MgApplication {
             win: window,
             download_btn: download_btn,
+            erase_btn: erase_btn,
             erase_checkbtn: erase_checkbtn,
             model_combo: model_combo,
             port_combo: port_combo,
@@ -64,7 +67,9 @@ impl MgApplication {
         app.download_btn.connect_clicked(|_| {
             //
         });
-
+        app.erase_btn.connect_clicked(|_| {
+            //
+        });
         let me = Rc::new(RefCell::new(app));
         let me2 = me.clone();
         me.borrow_mut().model_combo.connect_changed(move |combo| {
