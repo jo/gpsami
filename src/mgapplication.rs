@@ -14,8 +14,7 @@ pub struct MgApplication {
     erase_btn: gtk::Button,
     erase_checkbtn: gtk::CheckButton,
     model_combo: gtk::ComboBox,
-    port_combo: gtk::ComboBox,
-    port_combo_store: gtk::ListStore,
+    port_combo: gtk::ComboBoxText,
 
     device_manager: devices::Manager,
 }
@@ -46,10 +45,7 @@ impl MgApplication {
         let erase_btn: gtk::Button = builder.get_object("erase_btn").unwrap();
         let erase_checkbtn: gtk::CheckButton = builder.get_object("erase_checkbtn").unwrap();
         let model_combo: gtk::ComboBox = builder.get_object("model_combo").unwrap();
-        let port_combo: gtk::ComboBox = builder.get_object("port_combo").unwrap();
-
-        let store = gtk::ListStore::new(&[
-            String::static_type(), String::static_type()]);
+        let port_combo: gtk::ComboBoxText = builder.get_object("port_combo").unwrap();
 
         let app = MgApplication {
             win: window,
@@ -58,7 +54,6 @@ impl MgApplication {
             erase_checkbtn: erase_checkbtn,
             model_combo: model_combo,
             port_combo: port_combo,
-            port_combo_store: store,
             device_manager: devices::Manager::new(),
         };
         app.win.connect_delete_event(|_, _| {
@@ -96,24 +91,17 @@ impl MgApplication {
     /// Start the app.
     pub fn start(&mut self) {
         self.populate_model_combo();
-        self.setup_port_combo();
         self.win.show_all();
 
         // XXX used the stored value here.
         self.model_changed(&"".to_string());
     }
 
-    fn setup_port_combo(&mut self) {
-        utils::setup_text_combo(&self.port_combo, &self.port_combo_store);
-    }
-
     fn populate_port_combo(&mut self, ports: &Vec<drivers::Port>) {
-        self.port_combo_store.clear();
+        self.port_combo.remove_all();
         for port in ports {
             println!("adding port {:?}", port);
-            utils::add_text_row(&self.port_combo_store,
-                                port.id.as_str(),
-                                port.label.as_str());
+            self.port_combo.append_text(port.id.as_str());
         }
     }
 
