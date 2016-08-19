@@ -4,8 +4,9 @@ version = "0.1.0"
 authors = ["Hubert Figuière <hub@figuiere.net>"]
 
 [dependencies]
-gtk = { version = "0.1.0", features = ["v3_12"] }
 glib = "^0"
+gio = "0.1.0"
+gtk = { version = "0.1.0", features = ["v3_12"] }
 rustc-serialize = "0.3"
 
 [[bin]]

@@ -77,7 +77,7 @@ impl Manager {
             id: "foo".to_string(), label: "bar".to_string() } ];
     }
 
-    fn get_driver(&self) -> Option<Box<drivers::Driver>> {
+    pub fn get_driver(&self) -> Option<Box<drivers::Driver>> {
         if self.model == None {
             return None;
         }
