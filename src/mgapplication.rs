@@ -21,28 +21,15 @@ pub struct MgApplication {
 
 impl MgApplication {
 
-    /// Init Gtk and stuff. Called by the contructor.
-    fn init() {
-        use std::sync::{Once, ONCE_INIT};
-
-        static START: Once = ONCE_INIT;
-
-        START.call_once(|| {
-            // run initialization here
-            if gtk::init().is_err() {
-                panic!("Failed to initialize GTK.");
-            }
-        });
-    }
-
-    pub fn new() -> Rc<RefCell<MgApplication>> {
-        Self::init();
+    pub fn new(gapp: &gtk::Application) -> Rc<RefCell<MgApplication>> {
 
         let builder = gtk::Builder::new_from_string(include_str!("mgwindow.ui"));
         let window: gtk::ApplicationWindow = builder.get_object("main_window").unwrap();
         let erase_checkbtn: gtk::CheckButton = builder.get_object("erase_checkbtn").unwrap();
         let model_combo: gtk::ComboBox = builder.get_object("model_combo").unwrap();
         let port_entry: gtk::Entry = builder.get_object("port_entry").unwrap();
+
+        gapp.add_window(&window);
 
         let app = MgApplication {
             win: window,
