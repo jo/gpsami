@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::PathBuf;
 
 use ::Format;
@@ -20,6 +21,17 @@ pub enum Error {
     Failed
 }
 
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Error::None => write!(f, "{}", "None"),
+            Error::Unsupported => write!(f, "{}", "Unsupported"),
+            Error::WrongArg => write!(f, "{}", "WrongArg"),
+            Error::Failed => write!(f, "{}", "Failed")
+        }
+    }
+}
+
 pub trait Driver {
     /// list ports for the device
     fn list_ports(&self) -> Vec<Port>;
@@ -33,4 +45,3 @@ pub trait Driver {
     /// Erase the tracks
     fn erase(&self) -> Error;
 }
-

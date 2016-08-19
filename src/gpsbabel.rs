@@ -9,6 +9,7 @@ use drivers::Driver;
 use drivers::Port;
 
 /// GpsBabel "driver". Will use gpsbabel to connect to device.
+#[derive(Clone)]
 pub struct GpsBabel {
     device_id: String,
     port: String,
@@ -101,7 +102,7 @@ impl Driver for GpsBabel {
 
         // XXX use a better temporary name
         let mut dir = env::temp_dir();
-        dir.push(String::from("magellan.") + extension);
+        dir.push(String::from("magellan") + extension);
 
         /* gpsbabel -t -w -i m241 -f /dev/ttyACM0 -o gpx -F $1 */
         let output = GpsBabel::build_basic_command_line(&self.device_id, &self.port, erase, false)

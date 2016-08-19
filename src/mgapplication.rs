@@ -4,18 +4,14 @@ use gio;
 use glib::types::Type as GType;
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::ops::Deref;
 
 use devices;
 use drivers;
-use drivers::Driver;
 use utils;
 use ::Format;
 
 pub struct MgApplication {
     win: gtk::ApplicationWindow,
-    download_btn: gtk::Button,
-    erase_btn: gtk::Button,
     erase_checkbtn: gtk::CheckButton,
     model_combo: gtk::ComboBox,
     port_entry: gtk::Entry,
@@ -44,16 +40,12 @@ impl MgApplication {
 
         let builder = gtk::Builder::new_from_string(include_str!("mgwindow.ui"));
         let window: gtk::ApplicationWindow = builder.get_object("main_window").unwrap();
-        let download_btn: gtk::Button = builder.get_object("download_btn").unwrap();
-        let erase_btn: gtk::Button = builder.get_object("erase_btn").unwrap();
         let erase_checkbtn: gtk::CheckButton = builder.get_object("erase_checkbtn").unwrap();
         let model_combo: gtk::ComboBox = builder.get_object("model_combo").unwrap();
         let port_entry: gtk::Entry = builder.get_object("port_entry").unwrap();
 
         let app = MgApplication {
             win: window,
-            download_btn: download_btn,
-            erase_btn: erase_btn,
             erase_checkbtn: erase_checkbtn,
             model_combo: model_combo,
             port_entry: port_entry,
@@ -88,22 +80,16 @@ impl MgApplication {
                 if driver.is_none() {
                     println!("nodriver");
                 } else {
-                    let output = driver.unwrap().download(Format::Gpx, false);
+                    let mut d = driver.unwrap();
+                    d.open(&me_too.borrow().device_manager.get_port());
+                    let output = d.download(Format::Gpx, false);
                     if output.is_ok() {
                         println!("success {}", output.ok().unwrap().to_str().unwrap());
                     } else {
-                        println!("error ");
-                        use drivers::Error;
 
                         match output.err() {
-                            Some(e) => match e {
-                                Error::None => println!("NONE"),
-                                Error::Unsupported => println!("Unsupported"),
-                                Error::WrongArg => println!("WrongArg"),
-                                Error::Failed => println!("Failed")
-                            },
-                            _ => {
-                            }
+                            Some(e) => println!("error {}", e),
+                            _ => println!("error unknown")
                         }
                     }
                 }
@@ -137,7 +123,7 @@ impl MgApplication {
         self.model_changed(&"".to_string());
     }
 
-    fn populate_port_combo(&mut self, ports: &Vec<drivers::Port>) {
+    fn populate_port_combo(&mut self, /*ports*/ _: &Vec<drivers::Port>) {
 // XXX fix
 //        self.port_combo.remove_all();
 //        for port in ports {

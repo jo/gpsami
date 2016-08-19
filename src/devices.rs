@@ -2,6 +2,7 @@ use rustc_serialize::json;
 use drivers;
 use gpsbabel;
 
+
 /// Device static capability
 #[derive(Clone, Debug, RustcDecodable)]
 pub struct Capability {
@@ -52,6 +53,13 @@ impl Manager {
 
     pub fn set_port(&mut self, port: String) {
         self.port = Some(port);
+    }
+
+    pub fn get_port(&self) -> String {
+        match self.port {
+            Some(ref p) => p.to_owned(),
+            _ => "".to_owned()
+        }
     }
 
     pub fn devices_desc(&self) -> &Vec<Desc> {
