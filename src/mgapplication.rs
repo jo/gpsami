@@ -38,9 +38,6 @@ impl MgApplication {
             port_entry: port_entry,
             device_manager: devices::Manager::new(),
         };
-        app.win.connect_delete_event(|_, _| {
-            Self::terminate()
-        });
 
         let me = Rc::new(RefCell::new(app));
         {
@@ -93,11 +90,6 @@ impl MgApplication {
         }
 
         me
-    }
-
-    fn terminate() -> Inhibit {
-        gtk::main_quit();
-        Inhibit(false)
     }
 
     /// Start the app.
