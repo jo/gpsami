@@ -2,7 +2,6 @@ use rustc_serialize::json;
 use drivers;
 use gpsbabel;
 
-
 /// Device static capability
 #[derive(Clone, Debug, RustcDecodable)]
 pub struct Capability {
@@ -33,8 +32,6 @@ pub struct Manager {
     model: Option<String>,
     port: Option<String>,
     devices: Vec<Desc>,
-
-    driver: Option<Box<drivers::Driver>>,
 }
 
 impl Manager {
@@ -43,23 +40,15 @@ impl Manager {
             include_str!("devices.json")
             ).unwrap();
         Manager { model: None, port: None,
-                  devices: devices_db.devices, driver: None }
+                  devices: devices_db.devices }
     }
 
     pub fn set_model(&mut self, model: String) {
         self.model = Some(model);
-        self.driver = self.get_driver();
     }
 
     pub fn set_port(&mut self, port: String) {
         self.port = Some(port);
-    }
-
-    pub fn get_port(&self) -> String {
-        match self.port {
-            Some(ref p) => p.to_owned(),
-            _ => "".to_owned()
-        }
     }
 
     pub fn devices_desc(&self) -> &Vec<Desc> {
@@ -85,7 +74,8 @@ impl Manager {
             id: "foo".to_string(), label: "bar".to_string() } ];
     }
 
-    pub fn get_driver(&self) -> Option<Box<drivers::Driver>> {
+    // Get a driver for the device from the current manager.
+    pub fn get_device(&self) -> Option<Box<drivers::Driver>> {
         if self.model == None {
             return None;
         }
@@ -106,8 +96,14 @@ impl Manager {
         };
         match driver_id.as_str() {
             "m241" |
-            "mtk" =>
-                Some(Box::new(gpsbabel::GpsBabel::new(driver_id, capability))),
+            "mtk" => {
+                match self.port {
+                    Some(ref p) =>
+                        Some(Box::new(gpsbabel::GpsBabel::new(driver_id,
+                                                              p, capability))),
+                    _ => None
+                }
+            },
             _ =>
                 None
         }

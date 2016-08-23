@@ -36,7 +36,7 @@ pub trait Driver {
     /// list ports for the device
     fn list_ports(&self) -> Vec<Port>;
     /// open the device
-    fn open(&mut self, port: &String) -> bool;
+    fn open(&mut self) -> bool;
     /// close the device
     fn close(&mut self) -> bool;
     /// Download the track in specified format

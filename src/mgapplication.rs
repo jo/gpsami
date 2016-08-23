@@ -72,20 +72,20 @@ impl MgApplication {
             let me_too = me.clone();
             let dload_action = gio::SimpleAction::new("download", None);
             dload_action.connect_activate(move |_,_| {
-                let driver = me_too.borrow().device_manager.get_driver();
-                if driver.is_none() {
+                let device = me_too.borrow().device_manager.get_device();
+                if device.is_none() {
                     println!("nodriver");
                 } else {
-                    let mut d = driver.unwrap();
-                    d.open(&me_too.borrow().device_manager.get_port());
-                    let output = d.download(Format::Gpx, false);
-                    if output.is_ok() {
-                        println!("success {}", output.ok().unwrap().to_str().unwrap());
-                    } else {
-
-                        match output.err() {
-                            Some(e) => println!("error {}", e),
-                            _ => println!("error unknown")
+                    let mut d = device.unwrap();
+                    if d.open() {
+                        let output = d.download(Format::Gpx, false);
+                        if output.is_ok() {
+                            println!("success {}", output.ok().unwrap().to_str().unwrap());
+                        } else {
+                            match output.err() {
+                                Some(e) => println!("error {}", e),
+                                _ => println!("error unknown")
+                            }
                         }
                     }
                 }
@@ -101,7 +101,9 @@ impl MgApplication {
             me.borrow_mut().win.add_action(&erase_action);
         }
 
-        me.borrow_mut().load_settings();
+        if me.borrow_mut().load_settings().is_err() {
+            println!("Error loading settings");
+        }
         me
     }
 
@@ -192,7 +194,9 @@ impl MgApplication {
     fn model_changed(&mut self, id: &String) {
         println!("model changed to {}", id);
         self.prefs_store.set_string("device", "model", &id);
-        self.save_settings();
+        if self.save_settings().is_err() {
+            println!("Error loading settings");
+        }
 
         let cap = self.device_manager.device_capability(id);
         if cap.is_some() {
@@ -211,7 +215,9 @@ impl MgApplication {
 
     fn port_changed(&mut self, id: &str) {
         self.prefs_store.set_string("device", "port", id);
-        self.save_settings();
+        if self.save_settings().is_err() {
+            println!("Error loading settings");
+        }
 
         self.device_manager.set_port(id.to_string());
     }

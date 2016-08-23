@@ -17,8 +17,8 @@ pub struct GpsBabel {
 }
 
 impl GpsBabel {
-    pub fn new(device: String, capability: Capability) -> Self {
-        GpsBabel { device_id: device, port: "".to_owned(), cap: capability }
+    pub fn new(device: String, port: &str, capability: Capability) -> Self {
+        GpsBabel { device_id: device, port: port.to_owned(), cap: capability }
     }
 
     /// Return a string associated with the format.
@@ -68,9 +68,8 @@ impl Driver for GpsBabel {
         Vec::new()
     }
 
-    fn open(&mut self, port: &String) -> bool {
-        self.port = port.to_owned();
-        true
+    fn open(&mut self) -> bool {
+        !self.port.is_empty()
     }
 
     fn close(&mut self) -> bool {
