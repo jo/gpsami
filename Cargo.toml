@@ -4,10 +4,15 @@ version = "0.1.0"
 authors = ["Hubert Figuière <hub@figuiere.net>"]
 
 [dependencies]
-glib = "^0"
-gio = "0.1.0"
-gtk = { version = "0.1.0", features = ["v3_12"] }
+glib-sys = { git = "https://github.com/gtk-rs/sys" }
+glib = { version="0.1.0", git="https://github.com/gtk-rs/glib", features = ["v2_40"] }
+gio = { git="https://github.com/gtk-rs/gio" }
+gtk = { git="https://github.com/gtk-rs/gtk", features = ["v3_12"] }
 rustc-serialize = "0.3"
+
+
+[replace]
+"glib:0.1.0" = { git="https://github.com/hfiguiere/glib", rev="743dd65", features = ["v2_40"] }
 
 [[bin]]
 name = "magellan"
