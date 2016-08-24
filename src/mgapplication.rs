@@ -90,15 +90,34 @@ impl MgApplication {
                     }
                 }
             });
+            dload_action.set_enabled(false);
             me.borrow_mut().win.add_action(&dload_action);
         }
 
         {
+            let me_too = me.clone();
             let erase_action = gio::SimpleAction::new("erase", None);
             erase_action.connect_activate(move |_,_| {
+                let device = me_too.borrow().device_manager.get_device();
+                if device.is_none() {
+                    println!("nodriver");
+                } else {
+                    let mut d = device.unwrap();
+                    if d.open() {
+                        match d.erase() {
+                            drivers::Error::None =>
+                                println!("success erasing"),
+                            _ =>
+                                println!("failed erasing"),
+                        }
+                    }
+                }
 
             });
+            erase_action.set_enabled(false);
             me.borrow_mut().win.add_action(&erase_action);
+        }
+        {
         }
 
         if me.borrow_mut().load_settings().is_err() {
@@ -211,6 +230,14 @@ impl MgApplication {
 
     fn update_device_capability(&self, capability: &devices::Capability) {
         self.erase_checkbtn.set_sensitive(capability.can_erase);
+        match self.win.lookup_action("erase") {
+            Some(a) => match a.downcast::<gio::SimpleAction>() {
+                Ok(sa) =>
+                    sa.set_enabled(capability.can_erase_only),
+                _ => {},
+            },
+            _ => {},
+        }
     }
 
     fn port_changed(&mut self, id: &str) {
@@ -220,5 +247,13 @@ impl MgApplication {
         }
 
         self.device_manager.set_port(id.to_string());
+        match self.win.lookup_action("download") {
+            Some(a) => match a.downcast::<gio::SimpleAction>() {
+                Ok(sa) =>
+                    sa.set_enabled(id != ""),
+                _ => {},
+            },
+            _ => {},
+        }
     }
 }
