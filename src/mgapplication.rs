@@ -37,7 +37,7 @@ impl MgApplication {
         let erase_checkbtn: gtk::CheckButton = builder.get_object("erase_checkbtn").unwrap();
         let model_combo: gtk::ComboBox = builder.get_object("model_combo").unwrap();
         let port_entry: gtk::Entry = builder.get_object("port_entry").unwrap();
-        let output_file_chooser: gtk::FileChooserButton = builder.get_object("output_file_chooser").unwrap();
+        let output_dir_chooser: gtk::FileChooserButton = builder.get_object("output_dir_chooser").unwrap();
 
         gapp.add_window(&window);
 
@@ -80,13 +80,37 @@ impl MgApplication {
                 if device.is_none() {
                     println!("nodriver");
                 } else {
+                    let output_file: path::PathBuf;
+                    let chooser = gtk::FileChooserDialog::new(Some("Save File"),
+                                                              Some(&me_too.borrow().win),
+                                                              gtk::FileChooserAction::Save);
+                    chooser.add_buttons(&[
+                        ("Save", gtk::ResponseType::Ok.into()),
+                        ("Cancel", gtk::ResponseType::Cancel.into()),
+                        ]);
+                    chooser.set_current_folder(me_too.borrow().prefs_store
+                                               .get_string("output", "dir")
+                                               .unwrap_or("".to_owned()));
+                    if chooser.run() == gtk::ResponseType::Ok.into() {
+                        let result = chooser.get_filename();
+                        chooser.destroy();
+                        match result {
+                            Some(f) => output_file = f,
+                            _ => return,
+                        }
+                    } else {
+                        chooser.destroy();
+                        return;
+                    }
                     let mut d = device.unwrap();
                     if d.open() {
-                        let output = d.download(Format::Gpx, false);
-                        if output.is_ok() {
-                            println!("success {}", output.ok().unwrap().to_str().unwrap());
+                        let temp_output = d.download(Format::Gpx, false);
+                        if temp_output.is_ok() {
+                            let temp_output_filename = temp_output.ok().unwrap();
+                            println!("success {}", temp_output_filename.to_str().unwrap());
+                            std::fs::copy(temp_output_filename, output_file);
                         } else {
-                            match output.err() {
+                            match temp_output.err() {
                                 Some(e) => println!("error {}", e),
                                 _ => println!("error unknown")
                             }
@@ -123,7 +147,7 @@ impl MgApplication {
         }
         {
             let me_too = me.clone();
-            output_file_chooser.connect_file_set(move |w| {
+            output_dir_chooser.connect_file_set(move |w| {
                 let file_name = w.get_filename();
                 match file_name {
                     Some(f) => {
@@ -142,7 +166,7 @@ impl MgApplication {
         if me.borrow_mut().load_settings().is_err() {
             println!("Error loading settings");
         }
-        output_file_chooser.set_current_folder(
+        output_dir_chooser.set_current_folder(
             me.borrow().prefs_store.get_string("output", "dir").unwrap_or("".to_owned()));
         me
     }
