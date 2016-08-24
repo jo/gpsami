@@ -24,6 +24,8 @@ pub struct MgApplication {
 
     model_changed_signal: u64,
     port_changed_signal: u64,
+
+    output_dest_dir: path::PathBuf,
 }
 
 impl MgApplication {
@@ -35,6 +37,7 @@ impl MgApplication {
         let erase_checkbtn: gtk::CheckButton = builder.get_object("erase_checkbtn").unwrap();
         let model_combo: gtk::ComboBox = builder.get_object("model_combo").unwrap();
         let port_entry: gtk::Entry = builder.get_object("port_entry").unwrap();
+        let output_file_chooser: gtk::FileChooserButton = builder.get_object("output_file_chooser").unwrap();
 
         gapp.add_window(&window);
 
@@ -47,6 +50,7 @@ impl MgApplication {
             prefs_store: glib::KeyFile::new(),
             model_changed_signal: 0,
             port_changed_signal: 0,
+            output_dest_dir: path::PathBuf::new()
         };
 
         let me = Rc::new(RefCell::new(app));
@@ -118,11 +122,28 @@ impl MgApplication {
             me.borrow_mut().win.add_action(&erase_action);
         }
         {
+            let me_too = me.clone();
+            output_file_chooser.connect_file_set(move |w| {
+                let file_name = w.get_filename();
+                match file_name {
+                    Some(f) => {
+                        me_too.borrow_mut().set_output_destination_dir(f.as_ref());
+                        me_too.borrow().prefs_store.set_string("output", "dir",
+                                                               f.to_str().unwrap());
+                        if me_too.borrow().save_settings().is_err() {
+                            println!("Error loading settings");
+                        }
+                    },
+                    _ => {}
+                }
+            });
         }
 
         if me.borrow_mut().load_settings().is_err() {
             println!("Error loading settings");
         }
+        output_file_chooser.set_current_folder(
+            me.borrow().prefs_store.get_string("output", "dir").unwrap_or("".to_owned()));
         me
     }
 
@@ -138,6 +159,10 @@ impl MgApplication {
         let mut path = Self::settings_dir();
         path.push("magellan.ini");
         self.prefs_store.save_to_file(path.to_str().unwrap())
+    }
+
+    fn set_output_destination_dir(&mut self, output: &path::Path) {
+        self.output_dest_dir = output.to_owned();
     }
 
     pub fn load_settings(&mut self) -> Result<(), glib::Error> {

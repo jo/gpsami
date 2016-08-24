@@ -169,9 +169,10 @@
                 <property name="can_focus">False</property>
                 <property name="left_padding">12</property>
                 <child>
-                  <object class="GtkFileChooserButton" id="filechooserbutton1">
+                  <object class="GtkFileChooserButton" id="output_file_chooser">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
+                    <property name="action">select-folder</property>
                   </object>
                 </child>
               </object>
