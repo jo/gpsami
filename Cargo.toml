@@ -11,7 +11,7 @@ gtk = { version="0.1.0", git="https://github.com/gtk-rs/gtk", features = ["v3_12
 rustc-serialize = "0.3"
 
 [replace]
-"gtk:0.1.0" = { git="https://github.com/hfiguiere/gtk", rev="1b27108", features = ["v3_12"] }
+#"gtk:0.1.0" = { git="https://github.com/hfiguiere/gtk", rev="1b27108", features = ["v3_12"] }
 
 [[bin]]
 name = "magellan"
