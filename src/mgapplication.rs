@@ -76,47 +76,7 @@ impl MgApplication {
             let me_too = me.clone();
             let dload_action = gio::SimpleAction::new("download", None);
             dload_action.connect_activate(move |_,_| {
-                let device = me_too.borrow().device_manager.get_device();
-                if device.is_none() {
-                    println!("nodriver");
-                } else {
-                    let output_file: path::PathBuf;
-                    let chooser = gtk::FileChooserDialog::new(Some("Save File"),
-                                                              Some(&me_too.borrow().win),
-                                                              gtk::FileChooserAction::Save);
-                    chooser.add_buttons(&[
-                        ("Save", gtk::ResponseType::Ok.into()),
-                        ("Cancel", gtk::ResponseType::Cancel.into()),
-                        ]);
-                    chooser.set_current_folder(me_too.borrow().prefs_store
-                                               .get_string("output", "dir")
-                                               .unwrap_or("".to_owned()));
-                    if chooser.run() == gtk::ResponseType::Ok.into() {
-                        let result = chooser.get_filename();
-                        chooser.destroy();
-                        match result {
-                            Some(f) => output_file = f,
-                            _ => return,
-                        }
-                    } else {
-                        chooser.destroy();
-                        return;
-                    }
-                    let mut d = device.unwrap();
-                    if d.open() {
-                        let temp_output = d.download(Format::Gpx, false);
-                        if temp_output.is_ok() {
-                            let temp_output_filename = temp_output.ok().unwrap();
-                            println!("success {}", temp_output_filename.to_str().unwrap());
-                            std::fs::copy(temp_output_filename, output_file);
-                        } else {
-                            match temp_output.err() {
-                                Some(e) => println!("error {}", e),
-                                _ => println!("error unknown")
-                            }
-                        }
-                    }
-                }
+                me_too.borrow().do_download();
             });
             dload_action.set_enabled(false);
             me.borrow_mut().win.add_action(&dload_action);
@@ -126,21 +86,7 @@ impl MgApplication {
             let me_too = me.clone();
             let erase_action = gio::SimpleAction::new("erase", None);
             erase_action.connect_activate(move |_,_| {
-                let device = me_too.borrow().device_manager.get_device();
-                if device.is_none() {
-                    println!("nodriver");
-                } else {
-                    let mut d = device.unwrap();
-                    if d.open() {
-                        match d.erase() {
-                            drivers::Error::None =>
-                                println!("success erasing"),
-                            _ =>
-                                println!("failed erasing"),
-                        }
-                    }
-                }
-
+                me_too.borrow().do_erase();
             });
             erase_action.set_enabled(false);
             me.borrow_mut().win.add_action(&erase_action);
@@ -169,6 +115,78 @@ impl MgApplication {
         output_dir_chooser.set_current_folder(
             me.borrow().prefs_store.get_string("output", "dir").unwrap_or("".to_owned()));
         me
+    }
+
+    fn do_download(&self) {
+        let device = self.device_manager.get_device();
+        if device.is_none() {
+            println!("nodriver");
+        } else {
+            let output_file: path::PathBuf;
+            let chooser = gtk::FileChooserDialog::new(Some("Save File"),
+                                                      Some(&self.win),
+                                                      gtk::FileChooserAction::Save);
+            chooser.add_buttons(&[
+                ("Save", gtk::ResponseType::Ok.into()),
+                ("Cancel", gtk::ResponseType::Cancel.into()),
+                ]);
+            chooser.set_current_folder(self.prefs_store
+                                       .get_string("output", "dir")
+                                       .unwrap_or("".to_owned()));
+            if chooser.run() == gtk::ResponseType::Ok.into() {
+                let result = chooser.get_filename();
+                chooser.destroy();
+                match result {
+                    Some(f) => output_file = f,
+                    _ => return,
+                }
+            } else {
+                chooser.destroy();
+                return;
+            }
+            let mut d = device.unwrap();
+            if d.open() {
+                match d.download(Format::Gpx, false) {
+                    Ok(temp_output_filename) => {
+                        println!("success {}", temp_output_filename.to_str().unwrap());
+                        match std::fs::copy(temp_output_filename, &output_file) {
+                            Err(e) =>
+                                self.report_error(&format!("Failed to save {}: {}",
+                                                           output_file.to_str().unwrap(), e)),
+                            _ => {}
+                        }
+                    },
+                    Err(e) =>
+                        self.report_error(&format!("Failed to download GPS data: {}", e)),
+                }
+            }
+        }
+    }
+
+    fn report_error(&self, message: &str) {
+        let dialog = gtk::MessageDialog::new(Some(&self.win), gtk::DIALOG_MODAL,
+                                             gtk::MessageType::Error,
+                                             gtk::ButtonsType::Close,
+                                             message);
+        dialog.run();
+        dialog.destroy();
+    }
+
+    fn do_erase(&self) {
+        let device = self.device_manager.get_device();
+        if device.is_none() {
+            println!("nodriver");
+        } else {
+            let mut d = device.unwrap();
+            if d.open() {
+                match d.erase() {
+                    drivers::Error::None =>
+                        println!("success erasing"),
+                    _ =>
+                        println!("failed erasing"),
+                }
+            }
+        }
     }
 
     fn settings_dir() -> path::PathBuf {
