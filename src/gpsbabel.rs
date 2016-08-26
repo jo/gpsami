@@ -109,13 +109,12 @@ impl Driver for GpsBabel {
             .arg("-F").arg(String::from(dir.to_str().unwrap()))
             .output()
             .expect("failed to execute process");
-        println!("status: {}", output.status);
         println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        let err_output = String::from_utf8_lossy(&output.stderr);
         if output.status.success() {
             Ok(dir)
         } else {
-            Err(Error::Failed)
+            Err(Error::Failed(err_output.into_owned()))
         }
     }
 
@@ -129,13 +128,12 @@ impl Driver for GpsBabel {
         let output = GpsBabel::build_basic_command_line(&self.device_id, &self.port, false, true)
             .output()
             .expect("failed to execute process");
-        println!("status: {}", output.status);
         println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
-        println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+        let err_output = String::from_utf8_lossy(&output.stderr);
         if output.status.success() {
             Error::None
         } else {
-            Error::Failed
+            Error::Failed(err_output.into_owned())
         }
     }
 

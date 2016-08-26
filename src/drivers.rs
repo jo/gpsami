@@ -18,7 +18,7 @@ pub enum Error {
     None,
     Unsupported,
     WrongArg,
-    Failed
+    Failed(String)
 }
 
 impl fmt::Display for Error {
@@ -27,7 +27,7 @@ impl fmt::Display for Error {
             Error::None => write!(f, "{}", "None"),
             Error::Unsupported => write!(f, "{}", "Unsupported"),
             Error::WrongArg => write!(f, "{}", "WrongArg"),
-            Error::Failed => write!(f, "{}", "Failed")
+            Error::Failed(ref s) => write!(f, "{}", s)
         }
     }
 }

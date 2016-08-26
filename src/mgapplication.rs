@@ -151,23 +151,25 @@ impl MgApplication {
                         println!("success {}", temp_output_filename.to_str().unwrap());
                         match std::fs::copy(temp_output_filename, &output_file) {
                             Err(e) =>
-                                self.report_error(&format!("Failed to save {}: {}",
-                                                           output_file.to_str().unwrap(), e)),
+                                self.report_error(&format!("Failed to save {}",
+                                                           output_file.to_str().unwrap()),
+                                                  &e.to_string()),
                             _ => {}
                         }
                     },
                     Err(e) =>
-                        self.report_error(&format!("Failed to download GPS data: {}", e)),
+                        self.report_error(&format!("Failed to download GPS data."), &e.to_string()),
                 }
             }
         }
     }
 
-    fn report_error(&self, message: &str) {
+    fn report_error(&self, message: &str, reason: &str) {
         let dialog = gtk::MessageDialog::new(Some(&self.win), gtk::DIALOG_MODAL,
                                              gtk::MessageType::Error,
                                              gtk::ButtonsType::Close,
                                              message);
+        dialog.set_secondary_text(Some(reason));
         dialog.run();
         dialog.destroy();
     }
@@ -182,8 +184,8 @@ impl MgApplication {
                 match d.erase() {
                     drivers::Error::None =>
                         println!("success erasing"),
-                    _ =>
-                        println!("failed erasing"),
+                    e @ _ =>
+                        self.report_error(&format!("Failed to erase GPS data."), &e.to_string()),
                 }
             }
         }
