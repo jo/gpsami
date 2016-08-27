@@ -6,7 +6,6 @@ use ::Format;
 use devices::Capability;
 use drivers::Error;
 use drivers::Driver;
-use drivers::Port;
 
 /// GpsBabel "driver". Will use gpsbabel to connect to device.
 #[derive(Clone)]
@@ -63,10 +62,6 @@ impl GpsBabel {
 }
 
 impl Driver for GpsBabel {
-    fn list_ports(&self) -> Vec<Port> {
-        // XXX implement
-        Vec::new()
-    }
 
     fn open(&mut self) -> bool {
         !self.port.is_empty()

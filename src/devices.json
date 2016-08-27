@@ -124,7 +124,28 @@
   ],
   "drivers" : [
     {
-      "id": "m241"
+      "id": "baroiq",
+      "ports": "UsbSerial"
+    },
+    {
+      "id": "m241",
+      "ports": "UsbSerial"
+    },
+    {
+      "id": "mtk",
+      "ports": "UsbSerial"
+    },
+    {
+      "id": "dg-100",
+      "ports": "UsbSerial"
+    },
+    {
+      "id": "dg-200",
+      "ports": "UsbSerial"
+    },
+    {
+      "id": "navilink",
+      "ports": "UsbSerial"
     }
   ]
 }

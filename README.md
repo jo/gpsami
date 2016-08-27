@@ -6,6 +6,12 @@ logger and save it as GPX.
 
 It is written in Rust and uses Gtk3 for the UI and gpsbabel for the download part.
 
+Requires libudev for listing devices, therefor require some effort to
+run on non-Linux. Patches welcome.
+
+
+Misc
+----
 
 Applications to configure GPS:
 

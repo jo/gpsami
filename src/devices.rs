@@ -1,4 +1,6 @@
+use libudev;
 use rustc_serialize::json;
+
 use drivers;
 use gpsbabel;
 
@@ -32,6 +34,7 @@ pub struct Manager {
     model: Option<String>,
     port: Option<String>,
     devices: Vec<Desc>,
+    drivers: Vec<drivers::Desc>
 }
 
 impl Manager {
@@ -40,7 +43,8 @@ impl Manager {
             include_str!("devices.json")
             ).unwrap();
         Manager { model: None, port: None,
-                  devices: devices_db.devices }
+                  devices: devices_db.devices,
+                  drivers: devices_db.drivers }
     }
 
     pub fn set_model(&mut self, model: String) {
@@ -68,10 +72,63 @@ impl Manager {
         }
     }
 
-    pub fn get_ports_for_model(&self, _ /*model*/: &String)
-                               -> Vec<drivers::Port> {
-        return vec![ drivers::Port {
-            id: "foo".to_string(), label: "bar".to_string() } ];
+    fn list_ports(port_filter: drivers::PortType) -> Vec<drivers::Port> {
+        let context = libudev::Context::new();
+        if context.is_err() {
+            return Vec::new();
+        }
+
+        let context = context.unwrap();
+        let enumerator = libudev::Enumerator::new(&context);
+        if enumerator.is_err() {
+            return Vec::new();
+        }
+
+        let mut e = enumerator.unwrap();
+        match port_filter {
+            drivers::PortType::UsbSerial => {
+                e.match_subsystem("tty");
+                e.match_property("ID_BUS", "usb");
+            },
+            _ => {
+            },
+        }
+
+        let devices = e.scan_devices();
+        if devices.is_err() {
+            return Vec::new();
+        }
+        let ds = devices.unwrap();
+        let dv: Vec<drivers::Port> = ds.map(
+            |dev|  {
+                let path = dev.devnode().unwrap().to_path_buf();
+                let id = dev.sysname().to_string_lossy().into_owned();
+                let label = dev.property_value("ID_MODEL_FROM_DATABASE").unwrap().to_string_lossy().into_owned();
+                drivers::Port { id: id, label: label, path: path }
+            }).collect();
+        return dv;
+    }
+
+    pub fn get_ports_for_model(&self, model: &String)
+                               -> Option<Vec<drivers::Port>> {
+
+        let port_filter = match self.devices.iter().find(
+            |&device| {
+                &device.id == model
+            }) {
+            Some(device) => {
+                match self.drivers.iter().find(
+                    |&driver| {
+                        driver.id == device.driver
+                    }) {
+                    Some(driver) => driver.ports.clone(),
+                    _=> return None,
+                }
+            },
+            None =>
+                return None
+        };
+        Some(Manager::list_ports(port_filter))
     }
 
     // Get a driver for the device from the current manager.

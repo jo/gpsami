@@ -291,7 +291,7 @@ impl MgApplication {
             self.update_device_capability(&cap.unwrap());
             self.device_manager.set_model(id.clone());
             let ports = self.device_manager.get_ports_for_model(id);
-            self.populate_port_combo(&ports);
+            self.populate_port_combo(&ports.unwrap_or(Vec::new()));
         } else {
             // XXX clear device.
         }

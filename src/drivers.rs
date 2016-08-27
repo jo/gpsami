@@ -7,11 +7,20 @@ use ::Format;
 pub struct Port {
     pub id: String,
     pub label: String,
+    pub path: PathBuf,
+}
+
+#[derive(Clone, Debug, RustcDecodable)]
+pub enum PortType {
+    None,
+    UsbSerial,
 }
 
 #[derive(Clone, Debug, RustcDecodable)]
 pub struct Desc {
-    id: String,
+    pub id: String,
+    // the port to look for.
+    pub ports: PortType,
 }
 
 pub enum Error {
@@ -33,8 +42,6 @@ impl fmt::Display for Error {
 }
 
 pub trait Driver {
-    /// list ports for the device
-    fn list_ports(&self) -> Vec<Port>;
     /// open the device
     fn open(&mut self) -> bool;
     /// close the device
