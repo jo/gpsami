@@ -17,7 +17,7 @@ pub struct MgApplication {
     win: gtk::ApplicationWindow,
     erase_checkbtn: gtk::CheckButton,
     model_combo: gtk::ComboBox,
-    port_entry: gtk::Entry,
+    port_combo: gtk::ComboBoxText,
 
     device_manager: devices::Manager,
     prefs_store: glib::KeyFile,
@@ -36,7 +36,7 @@ impl MgApplication {
         let window: gtk::ApplicationWindow = builder.get_object("main_window").unwrap();
         let erase_checkbtn: gtk::CheckButton = builder.get_object("erase_checkbtn").unwrap();
         let model_combo: gtk::ComboBox = builder.get_object("model_combo").unwrap();
-        let port_entry: gtk::Entry = builder.get_object("port_entry").unwrap();
+        let port_combo: gtk::ComboBoxText = builder.get_object("port_combo").unwrap();
         let output_dir_chooser: gtk::FileChooserButton = builder.get_object("output_dir_chooser").unwrap();
 
         gapp.add_window(&window);
@@ -45,7 +45,7 @@ impl MgApplication {
             win: window,
             erase_checkbtn: erase_checkbtn,
             model_combo: model_combo,
-            port_entry: port_entry,
+            port_combo: port_combo,
             device_manager: devices::Manager::new(),
             prefs_store: glib::KeyFile::new(),
             model_changed_signal: 0,
@@ -65,8 +65,8 @@ impl MgApplication {
         }
         {
             let me_too = me.clone();
-            let signal_id = me.borrow_mut().port_entry.connect_changed(move |entry| {
-                if let Some(id) = entry.get_text() {
+            let signal_id = me.borrow_mut().port_combo.connect_changed(move |entry| {
+                if let Some(id) = entry.get_active_id() {
                     me_too.borrow_mut().port_changed(&id);
                 }
             });
@@ -241,13 +241,12 @@ impl MgApplication {
         // XXX used the stored value here.
     }
 
-    fn populate_port_combo(&mut self, /*ports*/ _: &Vec<drivers::Port>) {
-// XXX fix
-//        self.port_combo.remove_all();
-//        for port in ports {
-//            println!("adding port {:?}", port);
-//            self.port_combo.append_text(&port.id);
-//        }
+    fn populate_port_combo(&mut self, ports: &Vec<drivers::Port>) {
+        self.port_combo.remove_all();
+        for port in ports {
+            println!("adding port {:?}", port);
+            self.port_combo.append_text(&port.id);
+        }
     }
 
     fn populate_model_combo(&mut self) {
@@ -273,10 +272,10 @@ impl MgApplication {
         self.model_combo.set_active_id(Some(&model));
         self.model_changed(&model);
         glib::signal_handler_unblock(&self.model_combo, self.model_changed_signal);
-        glib::signal_handler_block(&self.port_entry, self.port_changed_signal);
-        self.port_entry.set_text(&port);
+        glib::signal_handler_block(&self.port_combo, self.port_changed_signal);
+        self.port_combo.set_active_id(Some(&port));
         self.port_changed(&port);
-        glib::signal_handler_unblock(&self.port_entry, self.port_changed_signal);
+        glib::signal_handler_unblock(&self.port_combo, self.port_changed_signal);
     }
 
     fn model_changed(&mut self, id: &String) {

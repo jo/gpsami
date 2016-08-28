@@ -45,7 +45,7 @@
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkEntry" id="port_entry">
+                      <object class="GtkComboBoxText" id="port_combo">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                       </object>
