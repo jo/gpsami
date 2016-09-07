@@ -12,8 +12,6 @@ rustc-serialize = "0.3"
 libudev = "0.2.0"
 
 [replace]
-"gtk:0.1.0" = { git="https://github.com/hfiguiere/gtk", rev="76f73db", features = ["v3_12"] }
 
 [[bin]]
 name = "magellan"
-
