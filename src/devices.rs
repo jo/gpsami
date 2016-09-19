@@ -1,4 +1,5 @@
 use libudev;
+use gudev;
 use rustc_serialize::json;
 
 use drivers;
@@ -34,7 +35,11 @@ pub struct Manager {
     model: Option<String>,
     port: Option<String>,
     devices: Vec<Desc>,
-    drivers: Vec<drivers::Desc>
+    drivers: Vec<drivers::Desc>,
+
+    udev_context: libudev::Context,
+    gudev_client: gudev::Client, // gudev client. We need to keep it alive.
+    device_filter: Option<drivers::PortType>,
 }
 
 impl Manager {
@@ -42,13 +47,39 @@ impl Manager {
         let devices_db: DeviceDb = json::decode(
             include_str!("devices.json")
             ).unwrap();
-        Manager { model: None, port: None,
-                  devices: devices_db.devices,
-                  drivers: devices_db.drivers }
+
+        let client = gudev::Client::new(&vec!["tty"]);
+
+        let context = libudev::Context::new();
+        if context.is_err() {
+            // XXX not sure how do handle the error.
+        }
+
+        let manager = Manager {
+            model: None, port: None,
+            devices: devices_db.devices,
+            drivers: devices_db.drivers,
+            udev_context: context.unwrap(),
+            gudev_client: client,
+            device_filter: None
+        };
+        manager.gudev_client.connect_uevent(|_, action, device| {
+            let subsystem = device.get_subsystem().unwrap_or("".to_string());
+            println!("received event {} {}", action, subsystem);
+        });
+
+        manager
+    }
+
+    fn listen_for_devices(&mut self, port_type: drivers::PortType) {
+        // XXX set the listener event filtering...
+        self.device_filter = Some(port_type);
     }
 
     pub fn set_model(&mut self, model: String) {
+        let port_filter = self.get_port_filter_for_model(&model);
         self.model = Some(model);
+        self.listen_for_devices(port_filter);
     }
 
     pub fn set_port(&mut self, port: String) {
@@ -72,14 +103,8 @@ impl Manager {
         }
     }
 
-    fn list_ports(port_filter: drivers::PortType) -> Vec<drivers::Port> {
-        let context = libudev::Context::new();
-        if context.is_err() {
-            return Vec::new();
-        }
-
-        let context = context.unwrap();
-        let enumerator = libudev::Enumerator::new(&context);
+    fn list_ports(&self, port_filter: drivers::PortType) -> Vec<drivers::Port> {
+        let enumerator = libudev::Enumerator::new(&self.udev_context);
         if enumerator.is_err() {
             return Vec::new();
         }
@@ -109,9 +134,7 @@ impl Manager {
         return dv;
     }
 
-    pub fn get_ports_for_model(&self, model: &String)
-                               -> Option<Vec<drivers::Port>> {
-
+    fn get_port_filter_for_model(&self, model: &str) -> drivers::PortType {
         let port_filter = match self.devices.iter().find(
             |&device| {
                 &device.id == model
@@ -122,13 +145,19 @@ impl Manager {
                         driver.id == device.driver
                     }) {
                     Some(driver) => driver.ports.clone(),
-                    _=> return None,
+                    _=> drivers::PortType::None,
                 }
             },
             None =>
-                return None
+                drivers::PortType::None
         };
-        Some(Manager::list_ports(port_filter))
+        return port_filter
+    }
+
+    pub fn get_ports_for_model(&self, model: &str)
+                               -> Option<Vec<drivers::Port>> {
+        let port_filter = self.get_port_filter_for_model(model);
+        Some(self.list_ports(port_filter))
     }
 
     // Get a driver for the device from the current manager.

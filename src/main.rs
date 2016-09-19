@@ -2,6 +2,7 @@ extern crate gio;
 extern crate glib;
 extern crate gtk;
 extern crate libudev;
+extern crate gudev;
 extern crate rustc_serialize;
 
 use gtk::prelude::*;

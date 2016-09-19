@@ -10,6 +10,7 @@ gio = { git="https://github.com/gtk-rs/gio" }
 gtk = { version="0.1.0", git="https://github.com/gtk-rs/gtk", features = ["v3_12"] }
 rustc-serialize = "0.3"
 libudev = "0.2.0"
+gudev = { version="0.1.0", git="https://github.com/hfiguiere/gudev-rs" }
 
 [replace]
 

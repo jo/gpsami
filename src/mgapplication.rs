@@ -30,7 +30,7 @@ pub struct MgApplication {
 
 impl MgApplication {
 
-    pub fn new(gapp: &gtk::Application) -> Rc<RefCell<MgApplication>> {
+    pub fn new(gapp: &gtk::Application) -> Rc<RefCell<Self>> {
 
         let builder = gtk::Builder::new_from_string(include_str!("mgwindow.ui"));
         let window: gtk::ApplicationWindow = builder.get_object("main_window").unwrap();
