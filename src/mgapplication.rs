@@ -56,6 +56,14 @@ impl MgApplication {
         let me = Rc::new(RefCell::new(app));
         {
             let me_too = me.clone();
+            me.borrow().device_manager.gudev_client.connect_uevent(move |_, action, device| {
+                let subsystem = device.get_subsystem().unwrap_or("".to_string());
+                println!("received event {} {}", action, subsystem);
+                me_too.borrow_mut().rescan_devices();
+            });
+        }
+        {
+            let me_too = me.clone();
             let signal_id = me.borrow_mut().model_combo.connect_changed(move |combo| {
                 if let Some(id) = combo.get_active_id() {
                     me_too.borrow_mut().model_changed(&id);
@@ -237,8 +245,11 @@ impl MgApplication {
 
         self.populate_model_combo();
         self.win.show_all();
+    }
 
-        // XXX used the stored value here.
+    /// Rescan devices. On start and when new device is connected.
+    fn rescan_devices(&mut self) {
+        self.populate_model_combo();
     }
 
     fn populate_port_combo(&mut self, ports: &Vec<drivers::Port>) {

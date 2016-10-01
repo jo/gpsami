@@ -38,7 +38,7 @@ pub struct Manager {
     drivers: Vec<drivers::Desc>,
 
     udev_context: libudev::Context,
-    gudev_client: gudev::Client, // gudev client. We need to keep it alive.
+    pub gudev_client: gudev::Client, // gudev client. We need to keep it alive.
     device_filter: Option<drivers::PortType>,
 }
 
@@ -63,11 +63,6 @@ impl Manager {
             gudev_client: client,
             device_filter: None
         };
-        manager.gudev_client.connect_uevent(|_, action, device| {
-            let subsystem = device.get_subsystem().unwrap_or("".to_string());
-            println!("received event {} {}", action, subsystem);
-        });
-
         manager
     }
 
