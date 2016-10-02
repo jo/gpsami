@@ -17,6 +17,7 @@ pub struct MgApplication {
     win: gtk::ApplicationWindow,
     erase_checkbtn: gtk::CheckButton,
     model_combo: gtk::ComboBox,
+    model_store: gtk::ListStore,
     port_combo: gtk::ComboBoxText,
 
     device_manager: devices::Manager,
@@ -45,6 +46,7 @@ impl MgApplication {
             win: window,
             erase_checkbtn: erase_checkbtn,
             model_combo: model_combo,
+            model_store: gtk::ListStore::new(&[gtk::Type::String, gtk::Type::String]),
             port_combo: port_combo,
             device_manager: devices::Manager::new(),
             prefs_store: glib::KeyFile::new(),
@@ -243,6 +245,7 @@ impl MgApplication {
     /// Start the app.
     pub fn start(&mut self) {
 
+        utils::setup_text_combo(&self.model_combo, &self.model_store);
         self.populate_model_combo();
         self.win.show_all();
     }
@@ -261,16 +264,12 @@ impl MgApplication {
     }
 
     fn populate_model_combo(&mut self) {
-        let store = gtk::ListStore::new(&[
-            gtk::Type::String, gtk::Type::String
-                ]);
 
-        utils::setup_text_combo(&self.model_combo, &store);
-
+        self.model_store.clear();
         {
             let devices = self.device_manager.devices_desc();
             for dev in devices {
-                utils::add_text_row(&store, &dev.id, &dev.label);
+                utils::add_text_row(&self.model_store, &dev.id, &dev.label);
             }
         }
 
