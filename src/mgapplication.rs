@@ -18,7 +18,8 @@ pub struct MgApplication {
     erase_checkbtn: gtk::CheckButton,
     model_combo: gtk::ComboBox,
     model_store: gtk::ListStore,
-    port_combo: gtk::ComboBoxText,
+    port_combo: gtk::ComboBox,
+    port_store: gtk::ListStore,
 
     device_manager: devices::Manager,
     prefs_store: glib::KeyFile,
@@ -37,7 +38,7 @@ impl MgApplication {
         let window: gtk::ApplicationWindow = builder.get_object("main_window").unwrap();
         let erase_checkbtn: gtk::CheckButton = builder.get_object("erase_checkbtn").unwrap();
         let model_combo: gtk::ComboBox = builder.get_object("model_combo").unwrap();
-        let port_combo: gtk::ComboBoxText = builder.get_object("port_combo").unwrap();
+        let port_combo: gtk::ComboBox = builder.get_object("port_combo").unwrap();
         let output_dir_chooser: gtk::FileChooserButton = builder.get_object("output_dir_chooser").unwrap();
 
         gapp.add_window(&window);
@@ -48,6 +49,7 @@ impl MgApplication {
             model_combo: model_combo,
             model_store: gtk::ListStore::new(&[gtk::Type::String, gtk::Type::String]),
             port_combo: port_combo,
+            port_store: gtk::ListStore::new(&[gtk::Type::String, gtk::Type::String]),
             device_manager: devices::Manager::new(),
             prefs_store: glib::KeyFile::new(),
             model_changed_signal: 0,
@@ -246,6 +248,7 @@ impl MgApplication {
     pub fn start(&mut self) {
 
         utils::setup_text_combo(&self.model_combo, &self.model_store);
+        utils::setup_text_combo(&self.port_combo, &self.port_store);
         self.populate_model_combo();
         self.win.show_all();
     }
@@ -256,10 +259,10 @@ impl MgApplication {
     }
 
     fn populate_port_combo(&mut self, ports: &Vec<drivers::Port>) {
-        self.port_combo.remove_all();
+        self.port_store.clear();
         for port in ports {
             println!("adding port {:?}", port);
-            self.port_combo.append_text(&port.id);
+            utils::add_text_row(&self.port_store, &port.path.to_str().unwrap(), &port.id);
         }
     }
 
@@ -283,6 +286,7 @@ impl MgApplication {
             obj.set_active_id(Some(&model_too));
         });
         self.model_changed(&model);
+
         let port_too = port.clone();
         utils::block_signal(&mut self.port_combo, self.port_changed_signal, |obj| {
             obj.set_active_id(Some(&port_too));
