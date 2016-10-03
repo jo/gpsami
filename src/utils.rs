@@ -1,3 +1,4 @@
+use glib;
 use gtk;
 use gtk::prelude::*;
 
@@ -19,4 +20,13 @@ pub fn add_text_row(store: &gtk::ListStore,
                     col1: &str, col2: &str) -> gtk::TreeIter {
     store.insert_with_values(None, &[0, 1],
                              &[&String::from(col1), &String::from(col2)])
+}
+
+/// Block a signal and run the function f.
+pub fn block_signal<T, F>(obj: &mut T, signal: u64, f: F)
+    where T: IsA<glib::Object>, F: Fn(&mut T) {
+
+    glib::signal_handler_block(obj, signal);
+    f(obj);
+    glib::signal_handler_unblock(obj, signal);
 }

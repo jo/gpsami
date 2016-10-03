@@ -278,14 +278,16 @@ impl MgApplication {
 
         // XXX this is a hack to not have the signal called as we'll end up
         // recursively borrow_mut self via the RefCell
-        glib::signal_handler_block(&self.model_combo, self.model_changed_signal);
-        self.model_combo.set_active_id(Some(&model));
+        let model_too = model.clone();
+        utils::block_signal(&mut self.model_combo, self.model_changed_signal, |obj| {
+            obj.set_active_id(Some(&model_too));
+        });
         self.model_changed(&model);
-        glib::signal_handler_unblock(&self.model_combo, self.model_changed_signal);
-        glib::signal_handler_block(&self.port_combo, self.port_changed_signal);
-        self.port_combo.set_active_id(Some(&port));
+        let port_too = port.clone();
+        utils::block_signal(&mut self.port_combo, self.port_changed_signal, |obj| {
+            obj.set_active_id(Some(&port_too));
+        });
         self.port_changed(&port);
-        glib::signal_handler_unblock(&self.port_combo, self.port_changed_signal);
     }
 
     fn model_changed(&mut self, id: &String) {
