@@ -176,6 +176,9 @@ impl Manager {
                 return None
         };
         match driver_id.as_str() {
+            "baroiq" |
+            "dg-100" | "dg-200" |
+            "navilink" |
             "m241" |
             "mtk" => {
                 match self.port {

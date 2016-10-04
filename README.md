@@ -2,21 +2,29 @@ Magellan
 ========
 
 Magellan is a small GUI application to download data from a GPS
-logger and save it as GPX.
+loggers and save it as GPX or KML.
 
 It is written in Rust and uses Gtk3 for the UI and gpsbabel for the download part.
 
 Requires libudev for listing devices, therefor require some effort to
 run on non-Linux. Patches welcome.
 
+See doc/devices.md for information about device support.
 
-Misc
-----
+To build
+--------
 
-Applications to configure GPS:
+Once you have Rust installed, just do:
 
-* Wintec WBT 201 GPS and Free Operating Systems http://www.daria.co.uk/gps
+````
+$ cargo build
+````
 
-* BT747 http://www.bt747.org/
+Contributors
+------------
+
+Written and maintained by:
 
 Hubert Figuiere <hub@figuiere.net>
+
+Contributors:
