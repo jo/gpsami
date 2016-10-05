@@ -1,8 +1,8 @@
 [package]
-name = "magellan"
+name = "gpsami"
 version = "0.1.0"
 authors = ["Hubert Figuière <hub@figuiere.net>"]
-license = GPL-3
+license = "GPL-3"
 
 [dependencies]
 glib-sys = { git = "https://github.com/gtk-rs/sys" }
@@ -16,4 +16,4 @@ gudev = { version="0.1.0", git="https://github.com/hfiguiere/gudev-rs" }
 [replace]
 
 [[bin]]
-name = "magellan"
+name = "gpsami"

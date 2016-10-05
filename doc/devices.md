@@ -45,7 +45,7 @@ devices::get_device()
 If it is something else then it is more complicated. You might of to
 implement a new driver.
 
-Feel free to file an issue https://github.com/hfiguiere/magellan/issues/new
+Feel free to file an issue https://github.com/hfiguiere/gpsami/issues/new
 
 If your device is supported by gpsbabel, please indicate which type
 (-i option) or eventually the whole command line you use.

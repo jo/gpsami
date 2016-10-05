@@ -220,13 +220,13 @@ impl MgApplication {
         // XXX replace this by glib stuff when we can.
         // Also we treat a failure of this as fatal.
         let mut path: path::PathBuf = std::env::home_dir().unwrap();
-        path.push(".magellan");
+        path.push(".gpsami");
         path
     }
 
     fn save_settings(&self) -> Result<(), glib::Error> {
         let mut path = Self::settings_dir();
-        path.push("magellan.ini");
+        path.push("gpsami.ini");
         self.prefs_store.save_to_file(path.to_str().unwrap())
     }
 
@@ -244,7 +244,7 @@ impl MgApplication {
             Ok(_) => {
             },
         }
-        path.push("magellan.ini");
+        path.push("gpsami.ini");
 
         match self.prefs_store.load_from_file(path, glib::KEY_FILE_NONE) {
             Err(e) => {

@@ -53,7 +53,7 @@ fn main() {
 
     init();
 
-    let gapp = gtk::Application::new(Some("net.figuiere.Magellan"),
+    let gapp = gtk::Application::new(Some("net.figuiere.gpsami"),
                                          gio::APPLICATION_FLAGS_NONE).unwrap();
 
     gapp.connect_activate(move |gapp| {
