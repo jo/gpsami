@@ -2,6 +2,7 @@
 name = "magellan"
 version = "0.1.0"
 authors = ["Hubert Figuière <hub@figuiere.net>"]
+license = GPL-3
 
 [dependencies]
 glib-sys = { git = "https://github.com/gtk-rs/sys" }
