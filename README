@@ -20,6 +20,8 @@ Once you have Rust installed, just do:
 $ cargo build
 ````
 
+You can also use configure and generate release builds for it.
+
 License
 -------
 
